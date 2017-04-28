@@ -1,0 +1,589 @@
+/* bcm2835.h
+    2   
+    3    C and C++ support for Broadcom BCM 2835 as used in Raspberry Pi
+    4   
+    5    Author: Mike McCauley
+    6    Copyright (C) 2011-2013 Mike McCauley
+    7    $Id: bcm2835.h,v 1.20 2015/03/31 04:55:41 mikem Exp mikem $
+    8 */
+    9 
+  465 /* Defines for BCM2835 */
+  466 #ifndef BCM2835_H
+  467 #define BCM2835_H
+  468 
+  469 #include <stdint.h>
+  470 
+  471 #define BCM2835_VERSION 10050 /* Version 1.50 */
+  472 
+  473 /* RPi 2 is ARM v7, and has DMB instruction for memory barriers.
+  474    Older RPis are ARM v6 and don't, so a coprocessor instruction must be used instead.
+  475    However, not all versions of gcc in all distros support the dmb assembler instruction even on conmpatible processors.
+  476    This test is so any ARMv7 or higher processors with suitable GCC will use DMB.
+  477 */
+  478 #if __ARM_ARCH >= 7
+  479 #define BCM2835_HAVE_DMB
+  480 #endif
+  481 
+  488 #define HIGH 0x1
+  489 
+  490 #define LOW  0x0
+  491 
+  493 #define BCM2835_CORE_CLK_HZ             250000000       
+  496 #define BMC2835_RPI2_DT_FILENAME "/proc/device-tree/soc/ranges"
+  497 
+  498 #define BMC2835_RPI2_DT_PERI_BASE_ADDRESS_OFFSET 4
+  499 
+  500 #define BMC2835_RPI2_DT_PERI_SIZE_OFFSET 8
+  501 
+  509 #define BCM2835_PERI_BASE               0x20000000
+  510 
+  511 #define BCM2835_PERI_SIZE               0x01000000
+  512 
+  516 #define BCM2835_ST_BASE                 0x3000
+  517 
+  518 #define BCM2835_GPIO_PADS               0x100000
+  519 
+  520 #define BCM2835_CLOCK_BASE              0x101000
+  521 
+  522 #define BCM2835_GPIO_BASE               0x200000
+  523 
+  524 #define BCM2835_SPI0_BASE               0x204000
+  525 
+  526 #define BCM2835_BSC0_BASE               0x205000
+  527 
+  528 #define BCM2835_GPIO_PWM                0x20C000
+  529 
+  530 #define BCM2835_BSC1_BASE               0x804000
+  531 
+  535 extern uint32_t *bcm2835_peripherals_base;
+  537 extern uint32_t bcm2835_peripherals_size;
+  538 
+  540 extern uint32_t *bcm2835_peripherals;
+  541 
+  545 extern volatile uint32_t *bcm2835_st;
+  546 
+  550 extern volatile uint32_t *bcm2835_gpio;
+  551 
+  555 extern volatile uint32_t *bcm2835_pwm;
+  556 
+  560 extern volatile uint32_t *bcm2835_clk;
+  561 
+  565 extern volatile uint32_t *bcm2835_pads;
+  566 
+  570 extern volatile uint32_t *bcm2835_spi0;
+  571 
+  575 extern volatile uint32_t *bcm2835_bsc0;
+  576 
+  580 extern volatile uint32_t *bcm2835_bsc1;
+  581 
+  585 typedef enum
+  586 {
+  587     BCM2835_REGBASE_ST   = 1, 
+  588     BCM2835_REGBASE_GPIO = 2, 
+  589     BCM2835_REGBASE_PWM  = 3, 
+  590     BCM2835_REGBASE_CLK  = 4, 
+  591     BCM2835_REGBASE_PADS = 5, 
+  592     BCM2835_REGBASE_SPI0 = 6, 
+  593     BCM2835_REGBASE_BSC0 = 7, 
+  594     BCM2835_REGBASE_BSC1 = 8  
+  595 } bcm2835RegisterBase;
+  596 
+  598 #define BCM2835_PAGE_SIZE               (4*1024)
+  599 
+  600 #define BCM2835_BLOCK_SIZE              (4*1024)
+  601 
+  602 
+  603 /* Defines for GPIO
+  604    The BCM2835 has 54 GPIO pins.
+  605    BCM2835 data sheet, Page 90 onwards.
+  606 */
+  610 #define BCM2835_GPFSEL0                      0x0000 
+  611 #define BCM2835_GPFSEL1                      0x0004 
+  612 #define BCM2835_GPFSEL2                      0x0008 
+  613 #define BCM2835_GPFSEL3                      0x000c 
+  614 #define BCM2835_GPFSEL4                      0x0010 
+  615 #define BCM2835_GPFSEL5                      0x0014 
+  616 #define BCM2835_GPSET0                       0x001c 
+  617 #define BCM2835_GPSET1                       0x0020 
+  618 #define BCM2835_GPCLR0                       0x0028 
+  619 #define BCM2835_GPCLR1                       0x002c 
+  620 #define BCM2835_GPLEV0                       0x0034 
+  621 #define BCM2835_GPLEV1                       0x0038 
+  622 #define BCM2835_GPEDS0                       0x0040 
+  623 #define BCM2835_GPEDS1                       0x0044 
+  624 #define BCM2835_GPREN0                       0x004c 
+  625 #define BCM2835_GPREN1                       0x0050 
+  626 #define BCM2835_GPFEN0                       0x0058 
+  627 #define BCM2835_GPFEN1                       0x005c 
+  628 #define BCM2835_GPHEN0                       0x0064 
+  629 #define BCM2835_GPHEN1                       0x0068 
+  630 #define BCM2835_GPLEN0                       0x0070 
+  631 #define BCM2835_GPLEN1                       0x0074 
+  632 #define BCM2835_GPAREN0                      0x007c 
+  633 #define BCM2835_GPAREN1                      0x0080 
+  634 #define BCM2835_GPAFEN0                      0x0088 
+  635 #define BCM2835_GPAFEN1                      0x008c 
+  636 #define BCM2835_GPPUD                        0x0094 
+  637 #define BCM2835_GPPUDCLK0                    0x0098 
+  638 #define BCM2835_GPPUDCLK1                    0x009c 
+  643 typedef enum
+  644 {
+  645     BCM2835_GPIO_FSEL_INPT  = 0x00,   
+  646     BCM2835_GPIO_FSEL_OUTP  = 0x01,   
+  647     BCM2835_GPIO_FSEL_ALT0  = 0x04,   
+  648     BCM2835_GPIO_FSEL_ALT1  = 0x05,   
+  649     BCM2835_GPIO_FSEL_ALT2  = 0x06,   
+  650     BCM2835_GPIO_FSEL_ALT3  = 0x07,   
+  651     BCM2835_GPIO_FSEL_ALT4  = 0x03,   
+  652     BCM2835_GPIO_FSEL_ALT5  = 0x02,   
+  653     BCM2835_GPIO_FSEL_MASK  = 0x07    
+  654 } bcm2835FunctionSelect;
+  655 
+  659 typedef enum
+  660 {
+  661     BCM2835_GPIO_PUD_OFF     = 0x00,   
+  662     BCM2835_GPIO_PUD_DOWN    = 0x01,   
+  663     BCM2835_GPIO_PUD_UP      = 0x02    
+  664 } bcm2835PUDControl;
+  665 
+  667 #define BCM2835_PADS_GPIO_0_27               0x002c 
+  668 #define BCM2835_PADS_GPIO_28_45              0x0030 
+  669 #define BCM2835_PADS_GPIO_46_53              0x0034 
+  672 #define BCM2835_PAD_PASSWRD                  (0x5A << 24)  
+  673 #define BCM2835_PAD_SLEW_RATE_UNLIMITED      0x10 
+  674 #define BCM2835_PAD_HYSTERESIS_ENABLED       0x08 
+  675 #define BCM2835_PAD_DRIVE_2mA                0x00 
+  676 #define BCM2835_PAD_DRIVE_4mA                0x01 
+  677 #define BCM2835_PAD_DRIVE_6mA                0x02 
+  678 #define BCM2835_PAD_DRIVE_8mA                0x03 
+  679 #define BCM2835_PAD_DRIVE_10mA               0x04 
+  680 #define BCM2835_PAD_DRIVE_12mA               0x05 
+  681 #define BCM2835_PAD_DRIVE_14mA               0x06 
+  682 #define BCM2835_PAD_DRIVE_16mA               0x07 
+  687 typedef enum
+  688 {
+  689     BCM2835_PAD_GROUP_GPIO_0_27         = 0, 
+  690     BCM2835_PAD_GROUP_GPIO_28_45        = 1, 
+  691     BCM2835_PAD_GROUP_GPIO_46_53        = 2  
+  692 } bcm2835PadGroup;
+  693 
+  708 typedef enum
+  709 {
+  710     RPI_GPIO_P1_03        =  0,  
+  711     RPI_GPIO_P1_05        =  1,  
+  712     RPI_GPIO_P1_07        =  4,  
+  713     RPI_GPIO_P1_08        = 14,  
+  714     RPI_GPIO_P1_10        = 15,  
+  715     RPI_GPIO_P1_11        = 17,  
+  716     RPI_GPIO_P1_12        = 18,  
+  717     RPI_GPIO_P1_13        = 21,  
+  718     RPI_GPIO_P1_15        = 22,  
+  719     RPI_GPIO_P1_16        = 23,  
+  720     RPI_GPIO_P1_18        = 24,  
+  721     RPI_GPIO_P1_19        = 10,  
+  722     RPI_GPIO_P1_21        =  9,  
+  723     RPI_GPIO_P1_22        = 25,  
+  724     RPI_GPIO_P1_23        = 11,  
+  725     RPI_GPIO_P1_24        =  8,  
+  726     RPI_GPIO_P1_26        =  7,  
+  728     /* RPi Version 2 */
+  729     RPI_V2_GPIO_P1_03     =  2,  
+  730     RPI_V2_GPIO_P1_05     =  3,  
+  731     RPI_V2_GPIO_P1_07     =  4,  
+  732     RPI_V2_GPIO_P1_08     = 14,  
+  733     RPI_V2_GPIO_P1_10     = 15,  
+  734     RPI_V2_GPIO_P1_11     = 17,  
+  735     RPI_V2_GPIO_P1_12     = 18,  
+  736     RPI_V2_GPIO_P1_13     = 27,  
+  737     RPI_V2_GPIO_P1_15     = 22,  
+  738     RPI_V2_GPIO_P1_16     = 23,  
+  739     RPI_V2_GPIO_P1_18     = 24,  
+  740     RPI_V2_GPIO_P1_19     = 10,  
+  741     RPI_V2_GPIO_P1_21     =  9,  
+  742     RPI_V2_GPIO_P1_22     = 25,  
+  743     RPI_V2_GPIO_P1_23     = 11,  
+  744     RPI_V2_GPIO_P1_24     =  8,  
+  745     RPI_V2_GPIO_P1_26     =  7,  
+  746     RPI_V2_GPIO_P1_29     =  5,  
+  747     RPI_V2_GPIO_P1_31     =  6,  
+  748     RPI_V2_GPIO_P1_32     = 12,  
+  749     RPI_V2_GPIO_P1_33     = 13,  
+  750     RPI_V2_GPIO_P1_35     = 19,  
+  751     RPI_V2_GPIO_P1_36     = 16,  
+  752     RPI_V2_GPIO_P1_37     = 26,  
+  753     RPI_V2_GPIO_P1_38     = 20,  
+  754     RPI_V2_GPIO_P1_40     = 21,  
+  756     /* RPi Version 2, new plug P5 */
+  757     RPI_V2_GPIO_P5_03     = 28,  
+  758     RPI_V2_GPIO_P5_04     = 29,  
+  759     RPI_V2_GPIO_P5_05     = 30,  
+  760     RPI_V2_GPIO_P5_06     = 31,  
+  762     /* RPi B+ J8 header, also RPi 2 40 pin GPIO header */
+  763     RPI_BPLUS_GPIO_J8_03     =  2,  
+  764     RPI_BPLUS_GPIO_J8_05     =  3,  
+  765     RPI_BPLUS_GPIO_J8_07     =  4,  
+  766     RPI_BPLUS_GPIO_J8_08     = 14,  
+  767     RPI_BPLUS_GPIO_J8_10     = 15,  
+  768     RPI_BPLUS_GPIO_J8_11     = 17,  
+  769     RPI_BPLUS_GPIO_J8_12     = 18,  
+  770     RPI_BPLUS_GPIO_J8_13     = 27,  
+  771     RPI_BPLUS_GPIO_J8_15     = 22,  
+  772     RPI_BPLUS_GPIO_J8_16     = 23,  
+  773     RPI_BPLUS_GPIO_J8_18     = 24,  
+  774     RPI_BPLUS_GPIO_J8_19     = 10,  
+  775     RPI_BPLUS_GPIO_J8_21     =  9,  
+  776     RPI_BPLUS_GPIO_J8_22     = 25,  
+  777     RPI_BPLUS_GPIO_J8_23     = 11,  
+  778     RPI_BPLUS_GPIO_J8_24     =  8,  
+  779     RPI_BPLUS_GPIO_J8_26     =  7,  
+  780     RPI_BPLUS_GPIO_J8_29     =  5,  
+  781     RPI_BPLUS_GPIO_J8_31     =  6,  
+  782     RPI_BPLUS_GPIO_J8_32     = 12,  
+  783     RPI_BPLUS_GPIO_J8_33     = 13,  
+  784     RPI_BPLUS_GPIO_J8_35     = 19,  
+  785     RPI_BPLUS_GPIO_J8_36     = 16,  
+  786     RPI_BPLUS_GPIO_J8_37     = 26,  
+  787     RPI_BPLUS_GPIO_J8_38     = 20,  
+  788     RPI_BPLUS_GPIO_J8_40     = 21   
+  789 } RPiGPIOPin;
+  790 
+  791 /* Defines for SPI
+  792    GPIO register offsets from BCM2835_SPI0_BASE. 
+  793    Offsets into the SPI Peripheral block in bytes per 10.5 SPI Register Map
+  794 */
+  795 #define BCM2835_SPI0_CS                      0x0000 
+  796 #define BCM2835_SPI0_FIFO                    0x0004 
+  797 #define BCM2835_SPI0_CLK                     0x0008 
+  798 #define BCM2835_SPI0_DLEN                    0x000c 
+  799 #define BCM2835_SPI0_LTOH                    0x0010 
+  800 #define BCM2835_SPI0_DC                      0x0014 
+  802 /* Register masks for SPI0_CS */
+  803 #define BCM2835_SPI0_CS_LEN_LONG             0x02000000 
+  804 #define BCM2835_SPI0_CS_DMA_LEN              0x01000000 
+  805 #define BCM2835_SPI0_CS_CSPOL2               0x00800000 
+  806 #define BCM2835_SPI0_CS_CSPOL1               0x00400000 
+  807 #define BCM2835_SPI0_CS_CSPOL0               0x00200000 
+  808 #define BCM2835_SPI0_CS_RXF                  0x00100000 
+  809 #define BCM2835_SPI0_CS_RXR                  0x00080000 
+  810 #define BCM2835_SPI0_CS_TXD                  0x00040000 
+  811 #define BCM2835_SPI0_CS_RXD                  0x00020000 
+  812 #define BCM2835_SPI0_CS_DONE                 0x00010000 
+  813 #define BCM2835_SPI0_CS_TE_EN                0x00008000 
+  814 #define BCM2835_SPI0_CS_LMONO                0x00004000 
+  815 #define BCM2835_SPI0_CS_LEN                  0x00002000 
+  816 #define BCM2835_SPI0_CS_REN                  0x00001000 
+  817 #define BCM2835_SPI0_CS_ADCS                 0x00000800 
+  818 #define BCM2835_SPI0_CS_INTR                 0x00000400 
+  819 #define BCM2835_SPI0_CS_INTD                 0x00000200 
+  820 #define BCM2835_SPI0_CS_DMAEN                0x00000100 
+  821 #define BCM2835_SPI0_CS_TA                   0x00000080 
+  822 #define BCM2835_SPI0_CS_CSPOL                0x00000040 
+  823 #define BCM2835_SPI0_CS_CLEAR                0x00000030 
+  824 #define BCM2835_SPI0_CS_CLEAR_RX             0x00000020 
+  825 #define BCM2835_SPI0_CS_CLEAR_TX             0x00000010 
+  826 #define BCM2835_SPI0_CS_CPOL                 0x00000008 
+  827 #define BCM2835_SPI0_CS_CPHA                 0x00000004 
+  828 #define BCM2835_SPI0_CS_CS                   0x00000003 
+  833 typedef enum
+  834 {
+  835     BCM2835_SPI_BIT_ORDER_LSBFIRST = 0,  
+  836     BCM2835_SPI_BIT_ORDER_MSBFIRST = 1   
+  837 }bcm2835SPIBitOrder;
+  838 
+  842 typedef enum
+  843 {
+  844     BCM2835_SPI_MODE0 = 0,  
+  845     BCM2835_SPI_MODE1 = 1,  
+  846     BCM2835_SPI_MODE2 = 2,  
+  847     BCM2835_SPI_MODE3 = 3   
+  848 }bcm2835SPIMode;
+  849 
+  853 typedef enum
+  854 {
+  855     BCM2835_SPI_CS0 = 0,     
+  856     BCM2835_SPI_CS1 = 1,     
+  857     BCM2835_SPI_CS2 = 2,     
+  858     BCM2835_SPI_CS_NONE = 3  
+  859 } bcm2835SPIChipSelect;
+  860 
+  875 typedef enum
+  876 {
+  877     BCM2835_SPI_CLOCK_DIVIDER_65536 = 0,       
+  878     BCM2835_SPI_CLOCK_DIVIDER_32768 = 32768,   
+  879     BCM2835_SPI_CLOCK_DIVIDER_16384 = 16384,   
+  880     BCM2835_SPI_CLOCK_DIVIDER_8192  = 8192,    
+  881     BCM2835_SPI_CLOCK_DIVIDER_4096  = 4096,    
+  882     BCM2835_SPI_CLOCK_DIVIDER_2048  = 2048,    
+  883     BCM2835_SPI_CLOCK_DIVIDER_1024  = 1024,    
+  884     BCM2835_SPI_CLOCK_DIVIDER_512   = 512,     
+  885     BCM2835_SPI_CLOCK_DIVIDER_256   = 256,     
+  886     BCM2835_SPI_CLOCK_DIVIDER_128   = 128,     
+  887     BCM2835_SPI_CLOCK_DIVIDER_64    = 64,      
+  888     BCM2835_SPI_CLOCK_DIVIDER_32    = 32,      
+  889     BCM2835_SPI_CLOCK_DIVIDER_16    = 16,      
+  890     BCM2835_SPI_CLOCK_DIVIDER_8     = 8,       
+  891     BCM2835_SPI_CLOCK_DIVIDER_4     = 4,       
+  892     BCM2835_SPI_CLOCK_DIVIDER_2     = 2,       
+  893     BCM2835_SPI_CLOCK_DIVIDER_1     = 1        
+  894 } bcm2835SPIClockDivider;
+  895 
+  896 /* Defines for I2C
+  897    GPIO register offsets from BCM2835_BSC*_BASE.
+  898    Offsets into the BSC Peripheral block in bytes per 3.1 BSC Register Map
+  899 */
+  900 #define BCM2835_BSC_C                                                   0x0000 
+  901 #define BCM2835_BSC_S                   0x0004 
+  902 #define BCM2835_BSC_DLEN                0x0008 
+  903 #define BCM2835_BSC_A                   0x000c 
+  904 #define BCM2835_BSC_FIFO                0x0010 
+  905 #define BCM2835_BSC_DIV                 0x0014 
+  906 #define BCM2835_BSC_DEL                 0x0018 
+  907 #define BCM2835_BSC_CLKT                0x001c 
+  909 /* Register masks for BSC_C */
+  910 #define BCM2835_BSC_C_I2CEN             0x00008000 
+  911 #define BCM2835_BSC_C_INTR              0x00000400 
+  912 #define BCM2835_BSC_C_INTT              0x00000200 
+  913 #define BCM2835_BSC_C_INTD              0x00000100 
+  914 #define BCM2835_BSC_C_ST                0x00000080 
+  915 #define BCM2835_BSC_C_CLEAR_1           0x00000020 
+  916 #define BCM2835_BSC_C_CLEAR_2           0x00000010 
+  917 #define BCM2835_BSC_C_READ              0x00000001 
+  919 /* Register masks for BSC_S */
+  920 #define BCM2835_BSC_S_CLKT              0x00000200 
+  921 #define BCM2835_BSC_S_ERR               0x00000100 
+  922 #define BCM2835_BSC_S_RXF               0x00000080 
+  923 #define BCM2835_BSC_S_TXE               0x00000040 
+  924 #define BCM2835_BSC_S_RXD               0x00000020 
+  925 #define BCM2835_BSC_S_TXD               0x00000010 
+  926 #define BCM2835_BSC_S_RXR               0x00000008 
+  927 #define BCM2835_BSC_S_TXW               0x00000004 
+  928 #define BCM2835_BSC_S_DONE              0x00000002 
+  929 #define BCM2835_BSC_S_TA                0x00000001 
+  931 #define BCM2835_BSC_FIFO_SIZE           16 
+  937 typedef enum
+  938 {
+  939     BCM2835_I2C_CLOCK_DIVIDER_2500   = 2500,      
+  940     BCM2835_I2C_CLOCK_DIVIDER_626    = 626,       
+  941     BCM2835_I2C_CLOCK_DIVIDER_150    = 150,       
+  942     BCM2835_I2C_CLOCK_DIVIDER_148    = 148        
+  943 } bcm2835I2CClockDivider;
+  944 
+  948 typedef enum
+  949 {
+  950     BCM2835_I2C_REASON_OK            = 0x00,      
+  951     BCM2835_I2C_REASON_ERROR_NACK    = 0x01,      
+  952     BCM2835_I2C_REASON_ERROR_CLKT    = 0x02,      
+  953     BCM2835_I2C_REASON_ERROR_DATA    = 0x04       
+  954 } bcm2835I2CReasonCodes;
+  955 
+  956 /* Defines for ST
+  957    GPIO register offsets from BCM2835_ST_BASE.
+  958    Offsets into the ST Peripheral block in bytes per 12.1 System Timer Registers
+  959    The System Timer peripheral provides four 32-bit timer channels and a single 64-bit free running counter.
+  960    BCM2835_ST_CLO is the System Timer Counter Lower bits register.
+  961    The system timer free-running counter lower register is a read-only register that returns the current value
+  962    of the lower 32-bits of the free running counter.
+  963    BCM2835_ST_CHI is the System Timer Counter Upper bits register.
+  964    The system timer free-running counter upper register is a read-only register that returns the current value
+  965    of the upper 32-bits of the free running counter.
+  966 */
+  967 #define BCM2835_ST_CS                   0x0000 
+  968 #define BCM2835_ST_CLO                  0x0004 
+  969 #define BCM2835_ST_CHI                  0x0008 
+  974 /* Defines for PWM, word offsets (ie 4 byte multiples) */
+  975 #define BCM2835_PWM_CONTROL 0
+  976 #define BCM2835_PWM_STATUS  1
+  977 #define BCM2835_PWM_DMAC    2
+  978 #define BCM2835_PWM0_RANGE  4
+  979 #define BCM2835_PWM0_DATA   5
+  980 #define BCM2835_PWM_FIF1    6
+  981 #define BCM2835_PWM1_RANGE  8
+  982 #define BCM2835_PWM1_DATA   9
+  983 
+  984 /* Defines for PWM Clock, word offsets (ie 4 byte multiples) */
+  985 #define BCM2835_PWMCLK_CNTL     40
+  986 #define BCM2835_PWMCLK_DIV      41
+  987 #define BCM2835_PWM_PASSWRD     (0x5A << 24)  
+  989 #define BCM2835_PWM1_MS_MODE    0x8000  
+  990 #define BCM2835_PWM1_USEFIFO    0x2000  
+  991 #define BCM2835_PWM1_REVPOLAR   0x1000  
+  992 #define BCM2835_PWM1_OFFSTATE   0x0800  
+  993 #define BCM2835_PWM1_REPEATFF   0x0400  
+  994 #define BCM2835_PWM1_SERIAL     0x0200  
+  995 #define BCM2835_PWM1_ENABLE     0x0100  
+  997 #define BCM2835_PWM0_MS_MODE    0x0080  
+  998 #define BCM2835_PWM_CLEAR_FIFO  0x0040  
+  999 #define BCM2835_PWM0_USEFIFO    0x0020  
+ 1000 #define BCM2835_PWM0_REVPOLAR   0x0010  
+ 1001 #define BCM2835_PWM0_OFFSTATE   0x0008  
+ 1002 #define BCM2835_PWM0_REPEATFF   0x0004  
+ 1003 #define BCM2835_PWM0_SERIAL     0x0002  
+ 1004 #define BCM2835_PWM0_ENABLE     0x0001  
+ 1012 typedef enum
+ 1013 {
+ 1014     BCM2835_PWM_CLOCK_DIVIDER_2048  = 2048,    
+ 1015     BCM2835_PWM_CLOCK_DIVIDER_1024  = 1024,    
+ 1016     BCM2835_PWM_CLOCK_DIVIDER_512   = 512,     
+ 1017     BCM2835_PWM_CLOCK_DIVIDER_256   = 256,     
+ 1018     BCM2835_PWM_CLOCK_DIVIDER_128   = 128,     
+ 1019     BCM2835_PWM_CLOCK_DIVIDER_64    = 64,      
+ 1020     BCM2835_PWM_CLOCK_DIVIDER_32    = 32,      
+ 1021     BCM2835_PWM_CLOCK_DIVIDER_16    = 16,      
+ 1022     BCM2835_PWM_CLOCK_DIVIDER_8     = 8,       
+ 1023     BCM2835_PWM_CLOCK_DIVIDER_4     = 4,       
+ 1024     BCM2835_PWM_CLOCK_DIVIDER_2     = 2,       
+ 1025     BCM2835_PWM_CLOCK_DIVIDER_1     = 1        
+ 1026 } bcm2835PWMClockDivider;
+ 1027 
+ 1028 /* Historical name compatibility */
+ 1029 #ifndef BCM2835_NO_DELAY_COMPATIBILITY
+ 1030 #define delay(x) bcm2835_delay(x)
+ 1031 #define delayMicroseconds(x) bcm2835_delayMicroseconds(x)
+ 1032 #endif
+ 1033 
+ 1034 #ifdef __cplusplus
+ 1035 extern "C" {
+ 1036 #endif
+ 1037 
+ 1056     extern int bcm2835_init(void);
+ 1057 
+ 1061     extern int bcm2835_close(void);
+ 1062 
+ 1070     extern void  bcm2835_set_debug(uint8_t debug);
+ 1071 
+ 1075     extern unsigned int bcm2835_version(void);
+ 1076 
+ 1092     extern uint32_t* bcm2835_regbase(uint8_t regbase);
+ 1093 
+ 1102     extern uint32_t bcm2835_peri_read(volatile uint32_t* paddr);
+ 1103 
+ 1114     extern uint32_t bcm2835_peri_read_nb(volatile uint32_t* paddr);
+ 1115 
+ 1116 
+ 1128     extern void bcm2835_peri_write(volatile uint32_t* paddr, uint32_t value);
+ 1129 
+ 1142     extern void bcm2835_peri_write_nb(volatile uint32_t* paddr, uint32_t value);
+ 1143 
+ 1156     extern void bcm2835_peri_set_bits(volatile uint32_t* paddr, uint32_t value, uint32_t mask);
+ 1170     extern void bcm2835_gpio_fsel(uint8_t pin, uint8_t mode);
+ 1171 
+ 1177     extern void bcm2835_gpio_set(uint8_t pin);
+ 1178 
+ 1184     extern void bcm2835_gpio_clr(uint8_t pin);
+ 1185 
+ 1191     extern void bcm2835_gpio_set_multi(uint32_t mask);
+ 1192 
+ 1198     extern void bcm2835_gpio_clr_multi(uint32_t mask);
+ 1199 
+ 1206     extern uint8_t bcm2835_gpio_lev(uint8_t pin);
+ 1207 
+ 1216     extern uint8_t bcm2835_gpio_eds(uint8_t pin);
+ 1217 
+ 1223     extern uint32_t bcm2835_gpio_eds_multi(uint32_t mask);
+ 1224 
+ 1230     extern void bcm2835_gpio_set_eds(uint8_t pin);
+ 1231 
+ 1236     extern void bcm2835_gpio_set_eds_multi(uint32_t mask);
+ 1237     
+ 1246     extern void bcm2835_gpio_ren(uint8_t pin);
+ 1247 
+ 1251     extern void bcm2835_gpio_clr_ren(uint8_t pin);
+ 1252 
+ 1261     extern void bcm2835_gpio_fen(uint8_t pin);
+ 1262 
+ 1266     extern void bcm2835_gpio_clr_fen(uint8_t pin);
+ 1267 
+ 1272     extern void bcm2835_gpio_hen(uint8_t pin);
+ 1273 
+ 1277     extern void bcm2835_gpio_clr_hen(uint8_t pin);
+ 1278 
+ 1283     extern void bcm2835_gpio_len(uint8_t pin);
+ 1284 
+ 1288     extern void bcm2835_gpio_clr_len(uint8_t pin);
+ 1289 
+ 1296     extern void bcm2835_gpio_aren(uint8_t pin);
+ 1297 
+ 1301     extern void bcm2835_gpio_clr_aren(uint8_t pin);
+ 1302 
+ 1309     extern void bcm2835_gpio_afen(uint8_t pin);
+ 1310 
+ 1314     extern void bcm2835_gpio_clr_afen(uint8_t pin);
+ 1315 
+ 1322     extern void bcm2835_gpio_pud(uint8_t pud);
+ 1323 
+ 1330     extern void bcm2835_gpio_pudclk(uint8_t pin, uint8_t on);
+ 1331 
+ 1337     extern uint32_t bcm2835_gpio_pad(uint8_t group);
+ 1338 
+ 1346     extern void bcm2835_gpio_set_pad(uint8_t group, uint32_t control);
+ 1347 
+ 1358     extern void bcm2835_delay (unsigned int millis);
+ 1359 
+ 1373     extern void bcm2835_delayMicroseconds (uint64_t micros);
+ 1374 
+ 1379     extern void bcm2835_gpio_write(uint8_t pin, uint8_t on);
+ 1380 
+ 1385     extern void bcm2835_gpio_write_multi(uint32_t mask, uint8_t on);
+ 1386 
+ 1391     extern void bcm2835_gpio_write_mask(uint32_t value, uint32_t mask);
+ 1392 
+ 1398     extern void bcm2835_gpio_set_pud(uint8_t pin, uint8_t pud);
+ 1399 
+ 1416     extern int bcm2835_spi_begin(void);
+ 1417 
+ 1422     extern void bcm2835_spi_end(void);
+ 1423 
+ 1430     extern void bcm2835_spi_setBitOrder(uint8_t order);
+ 1431 
+ 1437     extern void bcm2835_spi_setClockDivider(uint16_t divider);
+ 1438 
+ 1444     extern void bcm2835_spi_setDataMode(uint8_t mode);
+ 1445 
+ 1452     extern void bcm2835_spi_chipSelect(uint8_t cs);
+ 1453 
+ 1462     extern void bcm2835_spi_setChipSelectPolarity(uint8_t cs, uint8_t active);
+ 1463 
+ 1474     extern uint8_t bcm2835_spi_transfer(uint8_t value);
+ 1475     
+ 1487     extern void bcm2835_spi_transfernb(char* tbuf, char* rbuf, uint32_t len);
+ 1488 
+ 1496     extern void bcm2835_spi_transfern(char* buf, uint32_t len);
+ 1497 
+ 1504     extern void bcm2835_spi_writenb(char* buf, uint32_t len);
+ 1505 
+ 1522     extern int bcm2835_i2c_begin(void);
+ 1523 
+ 1528     extern void bcm2835_i2c_end(void);
+ 1529 
+ 1533     extern void bcm2835_i2c_setSlaveAddress(uint8_t addr);
+ 1534 
+ 1539     extern void bcm2835_i2c_setClockDivider(uint16_t divider);
+ 1540 
+ 1547     extern void bcm2835_i2c_set_baudrate(uint32_t baudrate);
+ 1548 
+ 1555     extern uint8_t bcm2835_i2c_write(const char * buf, uint32_t len);
+ 1556 
+ 1563     extern uint8_t bcm2835_i2c_read(char* buf, uint32_t len);
+ 1564 
+ 1579     extern uint8_t bcm2835_i2c_read_register_rs(char* regaddr, char* buf, uint32_t len);
+ 1580 
+ 1591     extern uint8_t bcm2835_i2c_write_read_rs(char* cmds, uint32_t cmds_len, char* buf, uint32_t buf_len);
+ 1592 
+ 1603     extern uint64_t bcm2835_st_read(void);
+ 1604 
+ 1609     extern void bcm2835_st_delay(uint64_t offset_micros, uint64_t micros);
+ 1610 
+ 1626     extern void bcm2835_pwm_set_clock(uint32_t divisor);
+ 1627     
+ 1634     extern void bcm2835_pwm_set_mode(uint8_t channel, uint8_t markspace, uint8_t enabled);
+ 1635 
+ 1641     extern void bcm2835_pwm_set_range(uint8_t channel, uint32_t range);
+ 1642     
+ 1649     extern void bcm2835_pwm_set_data(uint8_t channel, uint32_t data);
+ 1650 
+ 1652 #ifdef __cplusplus
+ 1653 }
+ 1654 #endif
+ 1655 
+ 1656 #endif /* BCM2835_H */
+ 1657 
