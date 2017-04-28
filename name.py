@@ -1,2 +1,2 @@
-print "Name"
+print "Vinay"
 
